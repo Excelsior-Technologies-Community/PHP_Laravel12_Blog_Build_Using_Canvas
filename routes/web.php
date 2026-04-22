@@ -9,14 +9,18 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Live search AJAX route
+Route::get('/blog/search', [BlogController::class, 'search'])->name('blog.search');
+
+
 // Frontend Blog
 Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
 Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
 
+
 // ------------------------
 // Admin Login & Dashboard
 // ------------------------
-
 
 
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
