@@ -17,6 +17,8 @@ Route::get('/blog/search', [BlogController::class, 'search'])->name('blog.search
 Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
 Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
 
+Route::post('/blog/{id}/comment', [BlogController::class, 'storeComment'])->name('comment.store');
+
 
 // ------------------------
 // Admin Login & Dashboard
