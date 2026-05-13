@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Post;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    // Show Register Form
- public function showRegister()
-{
-    return view('auth.register');
-}
+    public function showRegister()
+    {
+        return view('auth.register');
+    }
 
-    // Handle Registration
     public function register(Request $request)
     {
         $request->validate([
@@ -27,20 +27,17 @@ class AuthController extends Controller
         User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password), // important
+            'password' => Hash::make($request->password),
         ]);
 
         return redirect()->route('login')->with('success', 'Registration successful! Please login.');
     }
 
-    // Show Login Form
-   public function showLogin()
-{
-    return view('auth.login');
-}
+    public function showLogin()
+    {
+        return view('auth.login');
+    }
 
-
-    // Handle Login
     public function login(Request $request)
     {
         $request->validate([
@@ -60,20 +57,23 @@ class AuthController extends Controller
         ]);
     }
 
-    
-
-    // Logout
     public function dashboard()
-{
-    return view('auth.dashboard');
-}
+    {
+        $totalPosts = Post::count();
+        $totalViews = Post::sum('views') ?? 0;
+        $popularPosts = Post::orderBy('views', 'desc')->limit(5)->get();
 
-public function logout(Request $request)
-{
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-    return redirect()->route('login');
-}
+        return view('auth.dashboard', compact('totalPosts', 'totalViews', 'popularPosts'));
+    }
 
+    public function logout(Request $request)
+    {
+        Auth::logout();
+
+        // Session invalidate and token regenerate are important for security
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')->with('success', 'You have been logged out.');
+    }
 }
