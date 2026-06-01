@@ -4,13 +4,14 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\PostController as AdminPostController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 
 // Home page
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Live search AJAX route
+// Live search AJAX route (MUST be before the /blog route)
 Route::get('/blog/search', [BlogController::class, 'search'])->name('blog.search');
 
 // Frontend Blog
@@ -22,6 +23,7 @@ Route::post('/blog/{id}/comment', [BlogController::class, 'storeComment'])->name
 // Admin Routes
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('posts', AdminPostController::class);
+    Route::resource('categories', AdminCategoryController::class);
 });
 
 // Admin Authentication
