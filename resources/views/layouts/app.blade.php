@@ -4,60 +4,87 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
     <title>{{ config('app.name', 'Laravel') }}</title>
-
-    <link rel="dns-prefetch" href="//fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
-
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        body { background-color: #f8f9fa; font-family: 'Nunito', sans-serif; }
-        .navbar { border-bottom: 1px solid #e3e6f0; background: #ffffff !important; }
-        .dropdown-menu { border-radius: 10px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-top: 10px; }
+        body { 
+            background-color: #f8f9fa; 
+            font-family: 'Nunito', sans-serif; 
+        }
+        .navbar { 
+            border-bottom: 1px solid #e3e6f0; 
+            background: #ffffff !important; 
+        }
+        .dropdown-menu { 
+            border-radius: 10px; 
+            border: none; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            margin-top: 10px; 
+        }
     </style>
 </head>
 <body>
     <div id="app">
         <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
             <div class="container">
-                <a class="navbar-brand fw-bold text-primary" href="{{ url('/') }}">
-                    <i class="fa-solid fa-blog me-2"></i>{{ config('app.name', 'Laravel') }}
+                <a class="navbar-brand" href="{{ url('/') }}">
+                    {{ config('app.name', 'Laravel') }}
                 </a>
-                
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <div class="collapse navbar-collapse" id="navContent">
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('blog.index') }}">View Blog</a>
+                            <a class="nav-link" href="{{ route('blog.index') }}">Blog</a>
                         </li>
                     </ul>
 
+                    <!-- Right Side Of Navbar -->
                     <ul class="navbar-nav ms-auto">
+                        <!-- Authentication Links -->
                         @guest
-                            <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Login</a></li>
-                            <li class="nav-item"><a class="nav-link" href="{{ route('register') }}">Register</a></li>
+                            @if (Route::has('login'))
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
+                                </li>
+                            @endif
+
+                            @if (Route::has('register'))
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
+                                </li>
+                            @endif
                         @else
                             <li class="nav-item dropdown">
-                                <a id="userDropdown" class="nav-link dropdown-toggle fw-bold text-dark" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i class="fa-solid fa-user-circle me-1 text-primary"></i>{{ Auth::user()->name }}
+                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                    {{ Auth::user()->name }}
                                 </a>
 
-                                <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userDropdown">
-                                    <li><a class="dropdown-item" href="{{ route('dashboard') }}"><i class="fa-solid fa-gauge me-2 text-muted"></i>Dashboard</a></li>
-                                    <li><div class="dropdown-divider"></div></li>
-                                    <li>
-                                        <a class="dropdown-item text-danger fw-bold" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                            <i class="fa-solid fa-right-from-bracket me-2"></i>Logout
-                                        </a>
-                                    </li>
-                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
-                                </ul>
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item" href="{{ route('dashboard') }}">
+                                        {{ __('Dashboard') }}
+                                    </a>
+                                    <a class="dropdown-item" href="{{ route('admin.posts.index') }}">
+                                        Manage Posts
+                                    </a>
+                                    <hr class="dropdown-divider">
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item">
+                                            {{ __('Logout') }}
+                                        </button>
+                                    </form>
+                                </div>
                             </li>
                         @endguest
                     </ul>
@@ -69,5 +96,8 @@
             @yield('content')
         </main>
     </div>
+    
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
