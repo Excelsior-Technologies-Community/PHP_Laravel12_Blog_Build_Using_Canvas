@@ -1,3 +1,4 @@
+@if($posts->count() > 0)
 <div class="row">
     @foreach($posts as $post)
     <div class="col-md-6 mb-4">
@@ -30,4 +31,11 @@
     <div class="d-flex justify-content-center">
         {{ $posts->links() }}
     </div>
+@endif
+
+@else
+<div class="alert alert-info text-center">
+    <h4>No posts found</h4>
+    <p>Try searching with different keywords.</p>
+</div>
 @endif
