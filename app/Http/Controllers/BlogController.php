@@ -3,95 +3,66 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\Category;
 use App\Models\Comment;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class BlogController extends Controller
 {
     public function index(Request $request)
     {
-        $query = $request->query('query');
-        $category = $request->query('category');
-
-        $posts = Post::orderBy('published_at', 'desc')
-            ->when($query, function ($q) use ($query) {
-                $q->where('title', 'like', "%{$query}%")
-                  ->orWhere('body_html', 'like', "%{$query}%");
-            })
-            ->when($category, function ($q) use ($category) {
-                $q->where('category', $category);
-            })
-            ->get();
-
-        $featuredPosts = Post::where('is_featured', true)->take(3)->get();
-        $categories = Post::select('category')->whereNotNull('category')->distinct()->pluck('category');
-
-        return view('blog.index', compact('posts', 'featuredPosts', 'categories'));
+        $query = Post::query();
+        
+        // Filter by category
+        if ($request->has('category') && $request->category != '') {
+            $query->whereHas('category', function($q) use ($request) {
+                $q->where('slug', $request->category);
+            });
+        }
+        
+        $posts = $query->orderBy('published_at', 'desc')->paginate(6);
+        $categories = Category::withCount('posts')->get();
+        
+        return view('blog.index', compact('posts', 'categories'));
     }
 
     public function show($slug)
     {
         $post = Post::where('slug', $slug)->firstOrFail();
+        $recentPosts = Post::orderBy('published_at', 'desc')->limit(3)->get();
+        $categories = Category::withCount('posts')->get();
         
-        $post->increment('views');
+        return view('blog.show', compact('post', 'recentPosts', 'categories'));
+    }
 
-        $recentPosts = Post::orderBy('published_at', 'desc')->where('id', '!=', $post->id)->take(3)->get();
-        $comments = $post->comments;
-
-        return view('blog.show', compact('post', 'recentPosts', 'comments'));
+    public function search(Request $request)
+    {
+        $search = $request->get('search');
+        $posts = Post::search($search)->orderBy('published_at', 'desc')->paginate(6);
+        
+        if ($request->ajax()) {
+            return view('blog.partials.posts', compact('posts'))->render();
+        }
+        
+        return view('blog.index', compact('posts'));
     }
 
     public function storeComment(Request $request, $id)
     {
         $request->validate([
-            'user_name' => 'required|string|max:255',
-            'comment' => 'required|string',
+            'author_name' => 'required|string|max:255',
+            'author_email' => 'required|email|max:255',
+            'content' => 'required|string|min:3'
         ]);
 
         Comment::create([
             'post_id' => $id,
-            'user_name' => $request->user_name,
-            'comment' => $request->comment
+            'author_name' => $request->author_name,
+            'author_email' => $request->author_email,
+            'content' => $request->content,
+            'is_approved' => false // Comments need approval
         ]);
 
-        return back()->with('success', 'Comment added successfully!');
-    }
-
-    public function search(Request $request)
-    {
-        $query = $request->get('query');
-
-        $posts = Post::where('title', 'like', "%{$query}%")
-            ->orWhere('body_html', 'like', "%{$query}%")
-            ->orderBy('published_at', 'desc')
-            ->get();
-
-        $html = '';
-        if ($posts->count() > 0) {
-            foreach ($posts as $post) {
-                $excerpt = strip_tags($post->body_html);
-                $excerpt = Str::limit($excerpt, 100);
-
-                $wordCount = str_word_count(strip_tags($post->body_html));
-                $readTime = ceil($wordCount / 200);
-
-                $html .= '<div class="col-md-4 post-card">
-                        <div class="card mb-3">'
-                    . ($post->cover_img ? '<img src="' . $post->cover_img . '" class="card-img-top" alt="' . $post->title . '">' : '') .
-                    '<div class="card-body">
-                                <h5 class="card-title">' . $post->title . '</h5>
-                                <p class="card-text">' . $excerpt . '</p>
-                                <small class="text-muted">Approx. ' . $readTime . ' min read | Views: ' . $post->views . '</small>
-                                <a href="' . route('blog.show', $post->slug) . '" class="btn btn-primary mt-2 d-block">Read More</a>
-                            </div>
-                        </div>
-                      </div>';
-            }
-        } else {
-            $html = '<p class="text-center mt-3">No posts found.</p>';
-        }
-
-        return response()->json(['html' => $html]);
+        return redirect()->back()->with('success', 'Comment submitted for approval!');
     }
 }
